@@ -22,7 +22,7 @@ Vagrant.configure(2) do |config|
     libvirt.machine_virtual_size = 250
   end
   config.vm.provision "file", source: "ansible.cfg", destination: "/tmp/ansible.cfg"
-  config.vm.synced_folder ".", "/vagrant", type: "nfs", mount_options: ["tcp"]
+  config.vm.synced_folder ".", "/vagrant"
   config.vm.provision "shell", env: {"DNS1"=>dns1,"DNS2"=>dns2,"GIT_KEY"=>git_key,"RAM"=>ram}, inline: <<-SHELL
     growpart /dev/vda 3
     lvextend -l +100%FREE /dev/ubuntu-vg/ubuntu-lv
@@ -40,7 +40,7 @@ Vagrant.configure(2) do |config|
     done
     echo "Network is available. Proceeding with Snap installation..."
     snap install core snapd
-    snap install terraform --classic
+    snap install opentofu --classic
     snap install kubectl --classic
     snap install helm --classic
     apt update
@@ -92,40 +92,39 @@ Vagrant.configure(2) do |config|
     chmod 600 /root/.ssh/id_rsa
     rm /root/.ssh/id_rsa.pub
     echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > /root/.ssh/config
-    git clone -b v4.1.1 https://gitlab.ics.muni.cz/muni-kypo-crp/devops/kypo-crp-tf-deployment.git
-    cd /root/kypo-crp-tf-deployment/tf-openstack-base
-    terraform init
+    git clone -b v1.0.0 https://github.com/cyberrangecz/devops-tf-deployment
+    cd /root/devops-tf-deployment/tf-openstack-base
+    tofu init
     export TF_VAR_external_network_name=public1
     export TF_VAR_dns_nameservers='["'$DNS1'","'$DNS2'"]'
     export TF_VAR_standard_small_disk="10"
     export TF_VAR_standard_medium_disk="16"
-    terraform apply -auto-approve -var-file tfvars/vars-all.tfvars
+    tofu apply -auto-approve -var-file tfvars/vars-all.tfvars
     mkdir -p /root/.kube
-    cp /root/kypo-crp-tf-deployment/tf-openstack-base/config /root/.kube/config
-    export TF_VAR_acme_contact="demo@kypo.cz"
+    cp /root/devops-tf-deployment/tf-openstack-base/config /root/.kube/config
+    export TF_VAR_acme_contact="demo@example.com"
     export TF_VAR_application_credential_id=$OS_APPLICATION_CREDENTIAL_ID
     export TF_VAR_application_credential_secret=$OS_APPLICATION_CREDENTIAL_SECRET
     export TF_VAR_enable_monitoring=true
     export TF_VAR_gen_user_count=10
-    export TF_VAR_guacamole_admin_password=password
-    export TF_VAR_guacamole_user_password=password
-    export TF_VAR_head_host=`terraform output -raw cluster_ip`
-    export TF_VAR_head_ip=`terraform output -raw cluster_ip`
-    export TF_VAR_kubernetes_host=`terraform output -raw cluster_ip`
-    export TF_VAR_kubernetes_client_certificate=`terraform output -raw kubernetes_client_certificate`
-    export TF_VAR_kubernetes_client_key=`terraform output -raw kubernetes_client_key`
-    export TF_VAR_kypo_crp_head_version="5.0.0"
-    export TF_VAR_kypo_gen_users_version="2.0.1"
-    export TF_VAR_kypo_postgres_version="2.1.0"
+    export TF_VAR_head_host=`tofu output -raw cluster_ip`
+    export TF_VAR_kubernetes_api_url=https://`tofu output -raw cluster_ip`:6443/
+    export TF_VAR_kubernetes_client_certificate=`tofu output -raw kubernetes_client_certificate`
+    export TF_VAR_kubernetes_client_key=`tofu output -raw kubernetes_client_key`
+    export TF_VAR_head_version="1.0.0"
+    export TF_VAR_gen_users_version="1.0.0"
+    export TF_VAR_postgres_version="1.0.0"
     export TF_VAR_man_flavor="standard.medium"
-    export TF_VAR_man_image="debian-11-man-preinstalled"
+    export TF_VAR_man_image="debian-12-x86_64"
     export TF_VAR_openid_configuration_insecure=true
     export TF_VAR_os_auth_url=$OS_AUTH_URL
     export TF_VAR_os_region="RegionOne"
-    export TF_VAR_proxy_host=`terraform output -raw proxy_host`
-    export TF_VAR_proxy_key=`terraform output -raw proxy_key`
-    export TF_VAR_users='{"kypo-admin"={iss="https://'$TF_VAR_head_host'/keycloak/realms/KYPO",keycloakUsername="kypo-admin",keycloakPassword="password",email="kypo-admin@example.com",fullName="Demo Admin",givenName="Demo",familyName="Admin",admin=true}}'
-    cd /root/kypo-crp-tf-deployment/tf-head-services
+    export TF_VAR_proxy_host=`tofu output -raw proxy_host`
+    export TF_VAR_proxy_key=`tofu output -raw proxy_key`
+    export TF_VAR_users='{"crczp-admin"={iss="https://'$TF_VAR_head_host'/keycloak/realms/CRCZP",keycloakUsername="crczp-admin",keycloakPassword="password",email="crczp-admin@example.com",fullName="Demo Admin",givenName="Demo",familyName="Admin",admin=true}}'
+    cd /root/devops-tf-deployment/tf-head-services
+    cp provider.tf-os provider.tf
+    cp cloud.tf-os cloud.tf
     sed -i -e "s/1.1.1.1/$DNS1/" -e "s/1.0.0.1/$DNS2/" values.yaml
     iterations=0
     while true; do
@@ -142,18 +141,18 @@ Vagrant.configure(2) do |config|
 
         sleep 1
     done
-    terraform init
-    terraform apply -auto-approve
+    tofu init
+    tofu apply -auto-approve
     echo "ALL DONE. Open https://$TF_VAR_head_host/"
-    echo "Login: kypo-admin"
+    echo "Login: crczp-admin"
     echo "Password: password"
-    echo "Monitoring admin password: `terraform output -raw monitoring_admin_password`"
-    echo "Keycloak admin password: `terraform output -raw keycloak_password`"
-    echo "Import demo-training with URL https://gitlab.ics.muni.cz/kypo-library/content/kypo-library-demo-training.git"
-    echo "Import demo-training-adaptive with URL https://gitlab.ics.muni.cz/kypo-library/content/kypo-library-demo-training-adaptive.git"
-    echo "Import junior-hacker with URL https://gitlab.ics.muni.cz/kypo-library/content/kypo-library-junior-hacker.git"
-    echo "Import junior-hacker-adaptive with URL https://gitlab.ics.muni.cz/kypo-library/content/kypo-library-junior-hacker-adaptive.git"
-    echo "Import locust-3302 with URL https://gitlab.ics.muni.cz/kypo-library/content/kypo-library-locust-3302.git"
-    echo "Import secret-laboratory with URL https://gitlab.ics.muni.cz/kypo-library/content/kypo-library-secret-laboratory.git"
+    echo "Monitoring admin password: `tofu output -raw monitoring_admin_password`"
+    echo "Keycloak admin password: `tofu output -raw keycloak_password`"
+    echo "Import demo-training with URL https://github.com/cyberrangecz/library-demo-training.git"
+    echo "Import demo-training-adaptive with URL https://github.com/cyberrangecz/library-demo-training-adaptive.git"
+    echo "Import junior-hacker with URL https://github.com/cyberrangecz/library-junior-hacker.git"
+    echo "Import junior-hacker-adaptive with URL https://github.com/cyberrangecz/library-junior-hacker-adaptive.git"
+    echo "Import locust-3302 with URL https://github.com/cyberrangecz/library-locust-3302.git"
+    echo "Import secret-laboratory with URL https://github.com/cyberrangecz/library-secret-laboratory.git"
   SHELL
 end

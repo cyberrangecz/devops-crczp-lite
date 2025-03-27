@@ -1,5 +1,5 @@
 resource "google_compute_instance" "ubuntu" {
-  name         = "kypo-lite"
+  name         = "crczp-lite"
   machine_type = "n2-highmem-8"
   zone         = "europe-west3-c"
   tags         = ["ssh"]
