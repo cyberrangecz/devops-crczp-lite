@@ -94,8 +94,6 @@ Vagrant.configure(2) do |config|
     echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > /root/.ssh/config
     git clone -b v1.1.0 https://github.com/cyberrangecz/devops-tf-deployment
     cd /root/devops-tf-deployment/tf-openstack-base
-    cp cloud.tf-os cloud.tf
-    cp provider.tf-os provider.tf
     tofu init
     export TF_VAR_external_network_name=public1
     export TF_VAR_dns_nameservers='["'$DNS1'","'$DNS2'"]'
