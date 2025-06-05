@@ -48,8 +48,8 @@ Vagrant.configure(2) do |config|
     apt install --reinstall ca-certificates
     python3 -m venv /root/kolla-ansible-venv
     source /root/kolla-ansible-venv/bin/activate
-    pip3 install 'ansible-core>=2.14,<2.16'
-    pip3 install git+https://opendev.org/openstack/kolla-ansible@stable/2023.2
+    pip3 install 'ansible-core>=2.17,<2.18.99'
+    pip3 install git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
     mkdir -p {/etc/kolla,/etc/ansible}
     mv /tmp/ansible.cfg /etc/ansible/ansible.cfg
     cp -r /root/kolla-ansible-venv/share/kolla-ansible/etc_examples/kolla/* /etc/kolla
@@ -62,14 +62,14 @@ Vagrant.configure(2) do |config|
 
     kolla-ansible install-deps
     kolla-genpwd
-    kolla-ansible -i /root/all-in-one bootstrap-servers
-    kolla-ansible -i /root/all-in-one prechecks
-    kolla-ansible -i /root/all-in-one deploy || kolla-ansible -i /root/all-in-one deploy
-    kolla-ansible -i /root/all-in-one post-deploy
+    kolla-ansible bootstrap-servers -i /root/all-in-one
+    kolla-ansible prechecks -i /root/all-in-one
+    kolla-ansible deploy -i /root/all-in-one || kolla-ansible deploy -i /root/all-in-one
+    kolla-ansible post-deploy -i /root/all-in-one
 
     deactivate
     echo "source /etc/kolla/admin-openrc.sh" >> /root/.bashrc
-    pip3 install python-openstackclient==7.2.1
+    pip3 install python-openstackclient -c https://releases.openstack.org/constraints/upper/2025.1
     source /etc/kolla/admin-openrc.sh
     sed -i 's/10.0/10.1/g' /root/kolla-ansible-venv/share/kolla-ansible/init-runonce
     /root/kolla-ansible-venv/share/kolla-ansible/init-runonce
@@ -92,8 +92,10 @@ Vagrant.configure(2) do |config|
     chmod 600 /root/.ssh/id_rsa
     rm /root/.ssh/id_rsa.pub
     echo -e "Host *\n\tStrictHostKeyChecking no\n\n" > /root/.ssh/config
-    git clone -b v1.0.0 https://github.com/cyberrangecz/devops-tf-deployment
+    git clone -b v1.1.0 https://github.com/cyberrangecz/devops-tf-deployment
     cd /root/devops-tf-deployment/tf-openstack-base
+    cp cloud.tf-os cloud.tf
+    cp provider.tf-os provider.tf
     tofu init
     export TF_VAR_external_network_name=public1
     export TF_VAR_dns_nameservers='["'$DNS1'","'$DNS2'"]'
