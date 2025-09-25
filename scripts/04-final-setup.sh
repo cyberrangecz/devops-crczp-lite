@@ -11,24 +11,30 @@ setup_error_handling
 log "Starting final setup and information display..."
 
 # Paths
+BASE_TF_PATH="/root/devops-tf-deployment/tf-openstack-base"
 HEAD_TF_PATH="/root/devops-tf-deployment/tf-head-services"
 
 # Display deployment information
 display_deployment_info() {
     log "Gathering deployment information..."
 
+    # Get outputs from Terraform
+    local head_host monitoring_password keycloak_password
+
+    cd "$BASE_TF_PATH" || {
+        log_error "Failed to change to base Terraform directory"
+        return 1
+    }
+
+    if ! head_host=$(tofu output -raw cluster_ip 2>/dev/null); then
+        log_warning "Could not retrieve head_host from Terraform output"
+        head_host="<unavailable>"
+    fi
+
     cd "$HEAD_TF_PATH" || {
         log_error "Failed to change to head services directory"
         return 1
     }
-
-    # Get outputs from Terraform
-    local head_host monitoring_password keycloak_password
-
-    if ! head_host=$(tofu output -raw head_host 2>/dev/null); then
-        log_warning "Could not retrieve head_host from Terraform output"
-        head_host="<unavailable>"
-    fi
 
     if ! monitoring_password=$(tofu output -raw monitoring_admin_password 2>/dev/null); then
         log_warning "Could not retrieve monitoring password from Terraform output"
