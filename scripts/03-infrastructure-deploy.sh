@@ -60,7 +60,7 @@ setup_git_repository() {
     cd /root
     if [ ! -d "$REPO_PATH" ]; then
         log "Cloning repository..."
-        retry git clone -b v1.2.0 https://github.com/cyberrangecz/devops-tf-deployment
+        retry git clone -b v1.3.0 https://github.com/cyberrangecz/devops-tf-deployment
 
         if [ ! -d "$REPO_PATH" ]; then
             log_error "Failed to clone repository"
@@ -72,7 +72,7 @@ setup_git_repository() {
         cd "$REPO_PATH"
 
         # Fetch latest changes but don't reset local modifications
-        if ! git fetch origin v1.2.0 2>/dev/null; then
+        if ! git fetch origin v1.3.0 2>/dev/null; then
             log_warning "Failed to fetch updates, continuing with existing repository"
         fi
     fi
@@ -170,7 +170,7 @@ wait_for_kubernetes() {
     wait_for_service "kubectl" "kubectl version --client"
 
     # Wait for Traefik CRD to be available (indicates k3s is fully ready)
-    wait_for_service "Traefik CRD" "kubectl get crd middlewares.traefik.containo.us" 300 1
+    wait_for_service "Traefik CRD" "kubectl get crd middlewares.traefik.io" 300 1
 
     log_success "Kubernetes cluster is ready"
 }
@@ -228,11 +228,7 @@ setup_head_services_variables() {
     export TF_VAR_kubernetes_api_url="https://$cluster_ip:6443/"
     export TF_VAR_kubernetes_client_certificate="$kubernetes_client_certificate"
     export TF_VAR_kubernetes_client_key="$kubernetes_client_key"
-    export TF_VAR_head_version="1.0.0"
-    export TF_VAR_gen_users_version="1.0.0"
-    export TF_VAR_postgres_version="1.0.0"
     export TF_VAR_man_flavor="standard.medium"
-    export TF_VAR_man_image="debian-12-x86_64"
     export TF_VAR_openid_configuration_insecure=true
     export TF_VAR_os_auth_url="$OS_AUTH_URL"
     export TF_VAR_os_region="RegionOne"
