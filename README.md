@@ -27,21 +27,6 @@ docker run -it --rm \
   vagrant up
 ```
 
-For 4 CPU and 28 GB RAM run instead of vagrant up:
-```
-docker run -it --rm \
-  -e LIBVIRT_DEFAULT_URI \
-  -e CPU=4 \
-  -e RAM=28672 \
-  -v /var/run/libvirt/:/var/run/libvirt/ \
-  -v ~/.vagrant.d:/.vagrant.d \
-  -v $(realpath "${PWD}"):${PWD} \
-  -w "${PWD}" \
-  --network host \
-  vagrantlibvirt/vagrant-libvirt:latest \
-  vagrant up
-```
-
 The URL of the CyberRangeCZ Platform portal is shown at the end of the provisioning. In case of deployment on your desktop, you can access the URL directly.
 
 In case of running Vagrant instance on a remote host, it's convenient to tunnel communication over ssh, e.g. with sshuttle:
