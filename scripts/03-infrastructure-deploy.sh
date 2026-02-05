@@ -60,7 +60,7 @@ setup_git_repository() {
     cd /root
     if [ ! -d "$REPO_PATH" ]; then
         log "Cloning repository..."
-        retry git clone -b v1.3.0 https://github.com/cyberrangecz/devops-tf-deployment
+        retry git clone -b v1.4.0 https://github.com/cyberrangecz/devops-tf-deployment
 
         if [ ! -d "$REPO_PATH" ]; then
             log_error "Failed to clone repository"
@@ -72,7 +72,7 @@ setup_git_repository() {
         cd "$REPO_PATH"
 
         # Fetch latest changes but don't reset local modifications
-        if ! git fetch origin v1.3.0 2>/dev/null; then
+        if ! git fetch origin v1.4.0 2>/dev/null; then
             log_warning "Failed to fetch updates, continuing with existing repository"
         fi
     fi
