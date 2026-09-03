@@ -14,6 +14,9 @@ log "Starting infrastructure deployment..."
 DNS1="${DNS1:-1.1.1.1}"
 DNS2="${DNS2:-1.0.0.1}"
 
+# Versions (default kept in sync with Vagrantfile)
+TF_DEPLOYMENT_VERSION="${TF_DEPLOYMENT_VERSION:-v1.4.0}"
+
 # Paths
 REPO_PATH="/root/devops-tf-deployment"
 BASE_TF_PATH="$REPO_PATH/tf-openstack-base"
@@ -60,7 +63,7 @@ setup_git_repository() {
     cd /root
     if [ ! -d "$REPO_PATH" ]; then
         log "Cloning repository..."
-        retry git clone -b v1.4.0 https://github.com/cyberrangecz/devops-tf-deployment
+        retry git clone -b "$TF_DEPLOYMENT_VERSION" https://github.com/cyberrangecz/devops-tf-deployment
 
         if [ ! -d "$REPO_PATH" ]; then
             log_error "Failed to clone repository"
@@ -72,7 +75,7 @@ setup_git_repository() {
         cd "$REPO_PATH"
 
         # Fetch latest changes but don't reset local modifications
-        if ! git fetch origin v1.4.0 2>/dev/null; then
+        if ! git fetch origin "$TF_DEPLOYMENT_VERSION" 2>/dev/null; then
             log_warning "Failed to fetch updates, continuing with existing repository"
         fi
     fi

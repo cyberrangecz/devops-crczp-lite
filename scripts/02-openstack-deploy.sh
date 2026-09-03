@@ -10,6 +10,10 @@ setup_error_handling
 
 log "Starting OpenStack deployment..."
 
+# Versions (defaults kept in sync with Vagrantfile)
+OPENSTACK_RELEASE="${OPENSTACK_RELEASE:-2025.1}"
+ANSIBLE_CORE_VERSION="${ANSIBLE_CORE_VERSION:->=2.17,<2.18.99}"
+
 # Python virtual environment path
 VENV_PATH="/root/kolla-ansible-venv"
 KOLLA_CONFIG_DIR="/etc/kolla"
@@ -41,8 +45,8 @@ install_kolla_ansible() {
     source "$VENV_PATH/bin/activate"
 
     # Install specific versions for compatibility
-    retry pip3 install 'ansible-core>=2.17,<2.18.99'
-    retry pip3 install git+https://opendev.org/openstack/kolla-ansible@stable/2025.1
+    retry pip3 install "ansible-core${ANSIBLE_CORE_VERSION}"
+    retry pip3 install "git+https://opendev.org/openstack/kolla-ansible@stable/${OPENSTACK_RELEASE}"
 
     log_success "Kolla-Ansible installation completed"
 }
@@ -174,7 +178,7 @@ setup_openstack_client() {
     echo "source /etc/kolla/admin-openrc.sh" >> /root/.bashrc
 
     # Install OpenStack client
-    retry pip3 install python-openstackclient -c https://releases.openstack.org/constraints/upper/2025.1
+    retry pip3 install python-openstackclient -c "https://releases.openstack.org/constraints/upper/${OPENSTACK_RELEASE}"
 
     log_success "OpenStack client setup completed"
 }

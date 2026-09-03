@@ -27,6 +27,8 @@ docker run -it --rm \
   vagrant up
 ```
 
+The important versions (Vagrant box, OpenStack release, ansible-core, and the `devops-tf-deployment` tag) are defined in one block at the top of the `Vagrantfile`. Edit them there, or override any of them per run via the matching environment variable, e.g. `OPENSTACK_RELEASE=2025.1 vagrant up`.
+
 The URL of the CyberRangeCZ Platform portal is shown at the end of the provisioning. In case of deployment on your desktop, you can access the URL directly.
 
 In case of running Vagrant instance on a remote host, it's convenient to tunnel communication over ssh, e.g. with sshuttle:

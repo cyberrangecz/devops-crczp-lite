@@ -7,10 +7,17 @@ dns2 = ENV["DNS2"] || "1.0.0.1"
 cpu = ENV["CPU"] || 8
 ram = ENV["RAM"] || 45056
 
+# Component versions — set important versions here
+box                   = ENV["BOX"]                   || "bento/ubuntu-24.04"
+box_version           = ENV["BOX_VERSION"]           || "202508.03.0"
+openstack_release     = ENV["OPENSTACK_RELEASE"]     || "2025.1"
+ansible_core_version  = ENV["ANSIBLE_CORE_VERSION"]  || ">=2.17,<2.18.99"
+tf_deployment_version = ENV["TF_DEPLOYMENT_VERSION"] || "v1.4.0"
+
 Vagrant.configure(2) do |config|
 
-  config.vm.box = "bento/ubuntu-24.04"
-  config.vm.box_version = "202508.03.0"
+  config.vm.box = box
+  config.vm.box_version = box_version
   config.vm.hostname = "openstack"
 
   config.vm.network :private_network,
@@ -57,6 +64,10 @@ Vagrant.configure(2) do |config|
   config.vm.provision "openstack-deployment",
     type: "shell",
     name: "OpenStack Deployment with Kolla-Ansible",
+    env: {
+      "OPENSTACK_RELEASE" => openstack_release,
+      "ANSIBLE_CORE_VERSION" => ansible_core_version
+    },
     path: "scripts/02-openstack-deploy.sh",
     run: "once",
     privileged: true
@@ -67,7 +78,8 @@ Vagrant.configure(2) do |config|
     name: "Kubernetes and Application Infrastructure",
     env: {
       "DNS1" => dns1,
-      "DNS2" => dns2
+      "DNS2" => dns2,
+      "TF_DEPLOYMENT_VERSION" => tf_deployment_version
     },
     path: "scripts/03-infrastructure-deploy.sh",
     run: "once",
