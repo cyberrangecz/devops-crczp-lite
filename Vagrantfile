@@ -12,7 +12,7 @@ box                   = ENV["BOX"]                   || "bento/ubuntu-24.04"
 box_version           = ENV["BOX_VERSION"]           || "202508.03.0"
 openstack_release     = ENV["OPENSTACK_RELEASE"]     || "2025.1"
 ansible_core_version  = ENV["ANSIBLE_CORE_VERSION"]  || ">=2.17,<2.18.99"
-tf_deployment_version = ENV["TF_DEPLOYMENT_VERSION"] || "v1.4.0"
+tf_deployment_version = ENV["TF_DEPLOYMENT_VERSION"] || "v2.0.0"
 
 Vagrant.configure(2) do |config|
 
