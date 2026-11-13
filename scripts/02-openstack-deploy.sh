@@ -128,6 +128,22 @@ configure_globals() {
     log_success "Globals configuration completed"
 }
 
+# Configure Nova overrides, which Kolla merges into the nova.conf it generates
+configure_nova_overrides() {
+    log "Configuring Nova overrides..."
+
+    local nova_config_dir="$KOLLA_CONFIG_DIR/config/nova"
+    safe_mkdir "$nova_config_dir"
+
+    # Restart the instances that were running when the host went down
+    cat > "$nova_config_dir/nova-compute.conf" <<'EOF'
+[DEFAULT]
+resume_guests_state_on_host_boot = true
+EOF
+
+    log_success "Nova overrides configured"
+}
+
 # Deploy OpenStack
 deploy_openstack() {
     log "Starting OpenStack deployment with Kolla-Ansible..."
@@ -255,6 +271,7 @@ main() {
     install_kolla_ansible
     configure_kolla_ansible
     configure_globals
+    configure_nova_overrides
     deploy_openstack
 
     # Deactivate virtual environment before client setup
